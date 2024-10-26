@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { AudioLines, Delete, DeleteIcon, Trash, Waypoints } from 'lucide-react'
+import { AudioLines, Trash, Waypoints } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 interface StarProps {
@@ -204,17 +204,16 @@ export default function Home() {
       case TIMER_STATES.STOP:
         return (
           <div className='flex items-center relative h-screen w-full '>
-            {/* <div className='h-1' /> */}
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.8 }}
-              className={`absolute -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
+              className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
               onClick={resetTimer}
             >
               <span className='text-black text-xl font-normal'>Stop</span>
             </motion.div>
-            <motion.button className='bg-white absolute -right-8 mt-32 top-[50%] rounded-full flex items-center justify-center w-[58px] h-[58px]'>
+            <motion.button className='bg-white absolute z-50 -right-8 mt-32 top-[50%] rounded-full flex items-center justify-center w-[58px] h-[58px]'>
               <Trash className='text-orange' />
             </motion.button>
           </div>
@@ -228,7 +227,7 @@ export default function Home() {
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.8 }}
-                className={`absolute -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
+                className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
                 onClick={resetTimer}
               >
                 <span className='text-black text-xl text-center font-normal'>
@@ -258,7 +257,7 @@ export default function Home() {
     >
       {(!timerState.currentTime ||
         timerState.isFirstStart ||
-        timerState.status === 'completed') && (
+        timerState.status === TIMER_STATES.COMPLETED) && (
         <div className='absolute inset-0'>
           {stars.map(star => (
             <div
@@ -273,7 +272,7 @@ export default function Home() {
           ))}
         </div>
       )}
-
+      <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
       <div className='relative h-full w-full flex flex-col items-center justify-center'>
         {timerState.isFirstStart && (
           <div className='absolute -top-10 left-1/2 -translate-x-1/2 text-slate-300 text-sm'>
@@ -291,8 +290,8 @@ export default function Home() {
           >
             <defs>
               <linearGradient id='sw-gradient-0' x1='0' x2='0' y1='1' y2='0'>
-                <stop stopColor='rgba(243, 106, 62, 1)' offset='0%'></stop>
-                <stop stopColor='rgba(255, 179, 11, 1)' offset='100%'></stop>
+                <stop stopColor='#FFB887' offset='0%'></stop>
+                <stop stopColor='#FFC59A' offset='100%'></stop>
               </linearGradient>
             </defs>
             <motion.path
@@ -310,8 +309,8 @@ export default function Home() {
             />
             <defs>
               <linearGradient id='sw-gradient-0' x1='0' x2='0' y1='1' y2='0'>
-                <stop stopColor='rgba(243, 106, 62, 1)' offset='0%'></stop>
-                <stop stopColor='rgba(255, 179, 11, 1)' offset='100%'></stop>
+                <stop stopColor='#FFB887' offset='0%'></stop>
+                <stop stopColor='#FFC59A' offset='100%'></stop>
               </linearGradient>
             </defs>
             <motion.path
@@ -328,7 +327,9 @@ export default function Home() {
               }}
             />
           </motion.svg>
-        ) : timerState.status !== TIMER_STATES.INITIAL ? (
+        ) : timerState.status ===
+          TIMER_STATES.COMPLETED ? null : timerState.status !==
+          TIMER_STATES.INITIAL ? (
           <motion.div
             className='bg-gradient-to-t from-orange via-[#ffc59a] to-[#ffdb8e] absolute -bottom-16'
             initial={{
