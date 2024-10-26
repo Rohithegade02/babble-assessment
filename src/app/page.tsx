@@ -44,7 +44,10 @@ interface TimerState {
 export default function Home() {
   const [stars, setStars] = useState<StarProps[]>([])
   const [pathIndex, setPathIndex] = useState(0)
-
+  const [doneHoverTimer, setDoneHoverTime] = useState(false)
+  const [resumeHoverTimer, setResumeHoverTime] = useState(false)
+  const [stopHoverTimer, setStopHoverTime] = useState(false)
+  const [startHoverTime, setStartHoverTime] = useState(false)
   // Timer state management
   const [timerState, setTimerState] = useState<TimerState>({
     status: TIMER_STATES.INITIAL,
@@ -170,17 +173,36 @@ export default function Home() {
 
   const renderTimerButton = () => {
     const baseClassName =
-      'w-[202px] h-[202px] rounded-full border z-10 flex items-center justify-center cursor-pointer drop-shadow'
+      ' absolute -right-[100px] top-[30%] w-[202px] h-[202px] rounded-full border z-10 flex items-center justify-center cursor-pointer '
 
     switch (timerState.status) {
       case TIMER_STATES.INITIAL:
         return (
-          <div
-            className={`${baseClassName} bg-[#2F4858] border-orange`}
+          <motion.div
+            className={`${baseClassName} bg-[#2F4858] z-50  border-orange`}
+            transition={{ duration: 0.8 }}
+            onHoverStart={() => setStartHoverTime(true)}
+            onHoverEnd={() => setStartHoverTime(false)}
             onClick={startTimer}
           >
-            <span className='text-orange text-xl font-normal'>Babble</span>
-          </div>
+            {startHoverTime && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', bounce: 0.55 }}
+                  className={`absolute right-[20px] top-[10%] rounded-full border-2 w-[160px] h-[160px] bg-[#2F4858] z-50 shadow-md  border-orange`}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', bounce: 0.55 }}
+                  className={`absolute right-10 top-[20%] rounded-full border-2 w-[120px] h-[120px] bg-[#2F4858] z-50 shadow-md  border-orange`}
+                />
+              </>
+            )}
+            <span className='text-orange text-xl z-50 font-normal'>Babble</span>
+          </motion.div>
         )
       case TIMER_STATES.RUNNING:
       case TIMER_STATES.PAUSED:
@@ -196,7 +218,7 @@ export default function Home() {
                 : resumeTimer
             }
           >
-            <span className='text-orange text-xl font-normal'>
+            <span className='text-[#281E16] text-xl font-normal'>
               {timerState.currentTime}
             </span>
           </motion.div>
@@ -207,11 +229,23 @@ export default function Home() {
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
+              transition={{ duration: 1.5 }}
+              onHoverStart={() => setStopHoverTime(true)}
+              onHoverEnd={() => setStopHoverTime(false)}
+              className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
               onClick={resetTimer}
             >
-              <span className='text-black text-xl font-normal'>Stop</span>
+              {stopHoverTimer && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', bounce: 0.55 }}
+                  className='absolute inset-0 m-auto w-[150px] h-[150px] bg-white border border-orange rounded-full group'
+                />
+              )}
+              <span className='text-[#281E16] z-10 transition-colors duration-200 ease-out group-hover:text-orange text-xl text-center font-normal'>
+                Stop
+              </span>
             </motion.div>
             <motion.button className='bg-white absolute z-50 -right-8 mt-32 top-[50%] rounded-full flex items-center justify-center w-[58px] h-[58px]'>
               <Trash className='text-orange' />
@@ -226,11 +260,21 @@ export default function Home() {
               <motion.div
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 0.8 }}
-                className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white  z-50 overflow-hidden border-orange`}
+                transition={{ duration: 1.5 }}
+                onHoverStart={() => setDoneHoverTime(true)}
+                onHoverEnd={() => setDoneHoverTime(false)}
+                className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
                 onClick={resetTimer}
               >
-                <span className='text-black text-xl text-center font-normal'>
+                {doneHoverTimer && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: 'spring', bounce: 0.55 }}
+                    className='absolute inset-0 m-auto w-[150px] h-[150px] bg-white border border-orange rounded-full group'
+                  />
+                )}
+                <span className='text-[#281E16] z-10 transition-colors duration-200 ease-out group-hover:text-orange text-xl text-center font-normal'>
                   Done
                 </span>
               </motion.div>
@@ -239,10 +283,26 @@ export default function Home() {
               </motion.button>
             </div>
             <motion.div
+              onHoverStart={() => setResumeHoverTime(true)}
+              onHoverEnd={() => setResumeHoverTime(false)}
               className={`rounded-full absolute -right-64 top-[42%]  border border-orange  flex items-center justify-center cursor-pointer drop-shadow w-32 h-32  z-50 overflow-hidden bg-orange`}
               onClick={resetTimer}
             >
-              <span className='text-black text-xl font-normal'>Resume</span>
+              {resumeHoverTimer && (
+                <motion.div
+                  transition={{
+                    duration: 0.3,
+                    delay: 0.1,
+                    ease: 'easeInOut',
+                  }}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 0.95 }}
+                  className='absolute inset-0 m-auto w-28 h-28 bg-orange border-[2px] border-[#2F4858] rounded-full group'
+                />
+              )}
+              <span className='text-[#281E16] z-10 text-xl font-normal'>
+                Resume
+              </span>
             </motion.div>
           </div>
         )
@@ -272,7 +332,9 @@ export default function Home() {
           ))}
         </div>
       )}
-      <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
+      {timerState.status === TIMER_STATES.INITIAL && (
+        <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
+      )}
       <div className='relative h-full w-full flex flex-col items-center justify-center'>
         {timerState.isFirstStart && (
           <div className='absolute -top-10 left-1/2 -translate-x-1/2 text-slate-300 text-sm'>
@@ -280,7 +342,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className='relative'>{renderTimerButton()}</div>
+        <div className='relative h-screen'>{renderTimerButton()}</div>
 
         {timerState.status === TIMER_STATES.STOP ? (
           <motion.svg
