@@ -1,67 +1,21 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import { AudioLines, Trash, Waypoints } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
-
-interface StarProps {
-  id: number
-  x: number
-  y: number
-  opacity: number
-}
-
-// Define timer states as constants
-const TIMER_STATES = {
-  INITIAL: 'initial',
-  RUNNING: 'running',
-  PAUSED: 'paused',
-  COMPLETED: 'completed',
-  STOP: 'stop',
-} as const
-
-const pathData = [
-  // Gentle rolling wave
-  'M0,196L30,196C60,196,120,196,180,204.2C240,212,300,229,360,269.5C420,310,480,376,540,334.8C600,294,660,147,720,81.7C780,16,840,33,900,57.2C960,82,1020,114,1080,114.3C1140,114,1200,82,1260,73.5C1320,65,1380,82,1440,114.3L1440,490L0,490Z',
-
-  // Higher amplitude wave
-  'M0,98L30,138.8C60,180,120,261,180,253.2C240,245,300,147,360,147C420,147,480,245,540,261.3C600,278,660,212,720,220.5C780,229,840,310,900,334.8C960,359,1020,327,1080,294C1140,261,1200,229,1260,187.8C1320,147,1380,98,1440,73.5L1440,490L0,490Z',
-
-  // Calm ripple wave
-  'M0,245L30,236.8C60,229,120,212,180,204.2C240,196,300,196,360,204.2C420,212,480,229,540,236.8C600,245,660,245,720,236.8C780,229,840,212,900,204.2C960,196,1020,196,1080,204.2C1140,212,1200,229,1260,236.8C1320,245,1380,245,1440,236.8L1440,490L0,490Z',
-
-  // Choppy wave
-  'M0,147L30,171.3C60,196,120,245,180,261.3C240,278,300,261,360,220.5C420,180,480,114,540,98C600,82,660,114,720,155.2C780,196,840,245,900,261.3C960,278,1020,261,1080,220.5C1140,180,1200,114,1260,98C1320,82,1380,114,1440,155.2L1440,490L0,490Z',
-
-  // Double peak wave
-  'M0,196L30,220.5C60,245,120,294,180,285.8C240,278,300,212,360,187.8C420,163,480,180,540,204.2C600,229,660,261,720,245C780,229,840,163,900,155.2C960,147,1020,196,1080,220.5C1140,245,1200,245,1260,220.5C1320,196,1380,147,1440,122.5L1440,490L0,490Z',
-
-  // Smooth sine wave
-  'M0,245L30,236.8C60,229,120,212,180,212.3C240,212,300,229,360,245C420,261,480,278,540,277.7C600,278,660,261,720,245C780,229,840,212,900,212.3C960,212,1020,229,1080,245C1140,261,1200,278,1260,277.7C1320,278,1380,261,1440,245L1440,490L0,490Z',
-
-  // Storm wave
-  'M0,147L30,196C60,245,120,343,180,359.2C240,376,300,310,360,261.3C420,212,480,180,540,171.3C600,163,660,180,720,220.5C780,261,840,327,900,343.2C960,359,1020,327,1080,277.7C1140,229,1200,163,1260,138.8C1320,114,1380,131,1440,171.3L1440,490L0,490Z',
-]
-// Define timer configuration type
-interface TimerConfig {
-  initialTime: number
-  onComplete?: () => void
-  onTick?: (currentTime: number) => void
-}
-
-// Define timer state type
-interface TimerState {
-  status: (typeof TIMER_STATES)[keyof typeof TIMER_STATES]
-  currentTime: number
-  isFirstStart: boolean
-}
+import { pathData, TIMER_STATES } from '@/constants'
+import { TimerState } from '@/types/type'
+import BackgroundStarComponent from '@/components/BackgroundStarComponent'
+import InitailComponent from '@/components/InitailComponent'
+import TimeRunningComponent from '@/components/TimeRunningComponent'
+import TimeStopComponent from '@/components/TimeStopComponent'
+import TimeCompletedComponent from '@/components/TimeCompletedComponent'
+import WaveFormComponent from '@/components/WaveFormComponent'
+import BottomFooterComponent from '@/components/BottomFooterComponent'
+import IconComponent from '@/components/IconComponent'
 
 export default function Home() {
-  const [stars, setStars] = useState<StarProps[]>([])
   const [pathIndex, setPathIndex] = useState(0)
   const [doneHoverTimer, setDoneHoverTime] = useState(false)
   const [resumeHoverTimer, setResumeHoverTime] = useState(false)
   const [stopHoverTimer, setStopHoverTime] = useState(false)
-  const [startHoverTime, setStartHoverTime] = useState(false)
   const [currentPath, setCurrentPath] = useState(pathData[0])
 
   const [nextPath, setNextPath] = useState(pathData[1])
@@ -75,17 +29,6 @@ export default function Home() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const audioStreamRef = useRef<MediaStream | null>(null)
-
-  useEffect(() => {
-    setStars(
-      Array.from({ length: 300 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        opacity: Math.random() * 0.5 + 0.1,
-      })),
-    )
-  }, [])
 
   const setupAudioStream = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -155,11 +98,9 @@ export default function Home() {
         const nextIndex = (pathIndex + 1) % pathData.length
         setPathIndex(nextIndex)
 
-        // Update current and next paths
         setCurrentPath(pathData[pathIndex])
         setNextPath(pathData[(nextIndex + 1) % pathData.length])
 
-        // Reset transition flag after animation
         setTimeout(() => {
           setIsTransitioning(false)
         }, 500)
@@ -223,136 +164,39 @@ export default function Home() {
     switch (timerState.status) {
       case TIMER_STATES.INITIAL:
         return (
-          <motion.div
-            className={`${baseClassName} bg-[#2F4858] z-50 border-orange`}
-            style={{
-              filter: 'drop-shadow(0 0 15px rgba(251,146,60,0.5))',
-            }}
-            transition={{ duration: 0.8 }}
-            onHoverStart={() => setStartHoverTime(true)}
-            onHoverEnd={() => setStartHoverTime(false)}
-            onClick={startTimer}
-          >
-            {startHoverTime && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', bounce: 0.55 }}
-                  className={`absolute right-[20px] top-[10%] rounded-full border-2 w-[160px] h-[160px] bg-[#2F4858] z-50 shadow-md border-orange`}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', bounce: 0.55 }}
-                  className={`absolute right-10 top-[20%] rounded-full border-2 w-[120px] h-[120px] bg-[#2F4858] z-50 shadow-md border-orange`}
-                />
-              </>
-            )}
-            <span className='text-orange text-xl z-50 font-normal'>Babble</span>
-          </motion.div>
+          <InitailComponent
+            baseClassName={baseClassName}
+            startTimer={startTimer}
+          />
         )
       case TIMER_STATES.RUNNING:
       case TIMER_STATES.PAUSED:
         return (
-          <motion.div
-            className={`${baseClassName} bg-white border-orange`}
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8 }}
-            onClick={
-              timerState.status === TIMER_STATES.RUNNING
-                ? pauseTimer
-                : resumeTimer
-            }
-          >
-            <span className='text-[#281E16] text-xl font-normal'>
-              {timerState.currentTime}
-            </span>
-          </motion.div>
+          <TimeRunningComponent
+            baseClassName={baseClassName}
+            timerState={timerState}
+            pauseTimer={pauseTimer}
+            resumeTimer={resumeTimer}
+          />
         )
       case TIMER_STATES.STOP:
         return (
-          <div className='flex items-center relative h-screen w-full '>
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 1.5 }}
-              onHoverStart={() => setStopHoverTime(true)}
-              onHoverEnd={() => setStopHoverTime(false)}
-              className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
-              onClick={resetTimer}
-            >
-              {stopHoverTimer && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', bounce: 0.55 }}
-                  className='absolute inset-0 m-auto w-[150px] h-[150px] bg-white border border-orange rounded-full group'
-                />
-              )}
-              <span className='text-[#281E16] z-10 transition-colors duration-200 ease-out group-hover:text-orange text-xl text-center font-normal'>
-                Stop
-              </span>
-            </motion.div>
-            <motion.button className='bg-white absolute z-50 -right-8 mt-32 top-[50%] rounded-full flex items-center justify-center w-[58px] h-[58px]'>
-              <Trash className='text-orange' />
-            </motion.button>
-          </div>
+          <TimeStopComponent
+            stopHoverTimer={stopHoverTimer}
+            setStopHoverTime={setStopHoverTime}
+            resetTimer={resetTimer}
+          />
         )
 
       case TIMER_STATES.COMPLETED:
         return (
-          <div className='flex items-center relative h-screen w-full '>
-            <div className=' '>
-              <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 1.5 }}
-                onHoverStart={() => setDoneHoverTime(true)}
-                onHoverEnd={() => setDoneHoverTime(false)}
-                className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
-                onClick={resetTimer}
-              >
-                {doneHoverTimer && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 1.1 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', bounce: 0.55 }}
-                    className='absolute inset-0 m-auto w-[150px] h-[150px] bg-white border border-orange rounded-full group'
-                  />
-                )}
-                <span className='text-[#281E16] z-10 transition-colors duration-200 ease-out group-hover:text-orange text-xl text-center font-normal'>
-                  Done
-                </span>
-              </motion.div>
-              <motion.button className='bg-white absolute -right-8 mt-32 top-[50%] rounded-full flex items-center justify-center w-[58px] h-[58px]'>
-                <Trash className='text-orange' />
-              </motion.button>
-            </div>
-            <motion.div
-              onHoverStart={() => setResumeHoverTime(true)}
-              onHoverEnd={() => setResumeHoverTime(false)}
-              className={`rounded-full absolute -right-64 top-[42%]  border border-orange  flex items-center justify-center cursor-pointer drop-shadow w-32 h-32  z-50 overflow-hidden bg-orange`}
-              onClick={resetTimer}
-            >
-              {resumeHoverTimer && (
-                <motion.div
-                  transition={{
-                    duration: 0.3,
-                    delay: 0.1,
-                    ease: 'easeInOut',
-                  }}
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 0.95 }}
-                  className='absolute inset-0 m-auto w-28 h-28 bg-orange border-[2px] border-[#2F4858] rounded-full group'
-                />
-              )}
-              <span className='text-[#281E16] z-10 text-xl font-normal'>
-                Resume
-              </span>
-            </motion.div>
-          </div>
+          <TimeCompletedComponent
+            setDoneHoverTime={setDoneHoverTime}
+            setResumeHoverTime={setResumeHoverTime}
+            resumeHoverTimer={resumeHoverTimer}
+            doneHoverTimer={doneHoverTimer}
+            resetTimer={resetTimer}
+          />
         )
     }
   }
@@ -366,19 +210,7 @@ export default function Home() {
       {(!timerState.currentTime ||
         timerState.isFirstStart ||
         timerState.status === TIMER_STATES.COMPLETED) && (
-        <div className='absolute inset-0'>
-          {stars.map(star => (
-            <div
-              key={star.id}
-              className='absolute h-[1px] w-[1px] bg-white rounded-full'
-              style={{
-                left: `${star.x}%`,
-                top: `${star.y}%`,
-                opacity: star.opacity,
-              }}
-            />
-          ))}
-        </div>
+        <BackgroundStarComponent />
       )}
       {timerState.status === TIMER_STATES.INITIAL && (
         <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
@@ -393,107 +225,17 @@ export default function Home() {
         <div className='relative h-screen'>{renderTimerButton()}</div>
 
         {timerState.status === TIMER_STATES.STOP ? (
-          <motion.svg
-            className='absolute -bottom-16 w-[100vw]'
-            viewBox='0 0 1440 490'
-            xmlns='http://www.w3.org/2000/svg'
-          >
-            <defs>
-              <linearGradient id='sw-gradient-0' x1='0' x2='0' y1='1' y2='0'>
-                <stop stopColor='#FFB887' offset='0%'></stop>
-                <stop stopColor='#FFC59A' offset='100%'></stop>
-              </linearGradient>
-            </defs>
-
-            <AnimatePresence>
-              <motion.path
-                key={`base-${pathIndex}`}
-                style={{ opacity: 0.6 }}
-                fill='url(#sw-gradient-0)'
-                d={pathData[0]}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 0.6,
-                  d: pathData[0],
-                }}
-                exit={{ opacity: 0.6 }}
-                transition={{
-                  duration: 2.5,
-                  ease: 'easeInOut',
-                }}
-              />
-
-              <motion.path
-                key={`overlay-1-${pathIndex}`}
-                style={{ opacity: 0.6 }}
-                fill='url(#sw-gradient-0)'
-                d={currentPath}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 0.6,
-                  d: nextPath,
-                }}
-                exit={{ opacity: 0.6 }}
-                transition={{
-                  duration: 3,
-                  ease: 'easeInOut',
-                }}
-              />
-
-              <motion.path
-                key={`overlay-2-${pathIndex}`}
-                style={{ opacity: 0.3 }}
-                fill='url(#sw-gradient-0)'
-                d={nextPath}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 0.3,
-                  d: currentPath,
-                }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  duration: 3.5,
-                  ease: 'easeInOut',
-                }}
-              />
-            </AnimatePresence>
-          </motion.svg>
+          <WaveFormComponent
+            pathIndex={pathIndex}
+            currentPath={currentPath}
+            nextPath={nextPath}
+          />
         ) : timerState.status ===
           TIMER_STATES.COMPLETED ? null : timerState.status !==
           TIMER_STATES.INITIAL ? (
-          <motion.div
-            className='bg-gradient-to-t from-orange via-[#ffc59a] to-[#ffdb8e] absolute -bottom-16'
-            initial={{
-              y: 100,
-              opacity: 1,
-              height: 0,
-              width: '100vw',
-              scale: 1,
-            }}
-            animate={{
-              y: 0,
-              opacity: 1,
-              height: 200,
-              width: '100vw',
-              scale: 1,
-            }}
-            transition={{ duration: 2, ease: [0, 0.71, 0.2, 1.01] }}
-          />
+          <BottomFooterComponent />
         ) : (
-          <div className='absolute -bottom-4 z-10 left-1/2 -translate-x-1/2 flex gap-4'>
-            <button
-              onClick={startTimer}
-              className='w-[58px] z-10 h-[58px] rounded-full bg-grayLight border border-black flex items-center justify-center group hover:bg-orange transition-colors'
-            >
-              <Waypoints className='w-5 h-5 text-orange group-hover:text-grayLight' />
-            </button>
-            <button
-              onClick={startTimer}
-              className='w-[58px] h-[58px] rounded-full border bg-grayLight border-black flex items-center justify-center group hover:bg-orange transition-colors'
-            >
-              <AudioLines className='w-5 h-5 text-orange group-hover:text-grayLight' />
-            </button>
-          </div>
+          <IconComponent startTimer={startTimer} />
         )}
       </div>
     </div>
