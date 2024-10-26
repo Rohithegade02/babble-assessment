@@ -163,7 +163,10 @@ export default function Home() {
             opacity: 1,
             scale: 1,
           }}
-          className='text-white absolute bottom-20 text-3xl rounded-3xl z-10 flex justify-center items-center bg-red-400 w-72 h-20'
+          transition={{
+            duration: 1,
+          }}
+          className='text-white absolute bottom-20 text-xl rounded-3xl z-10 flex justify-center items-center bg-red-400 w-72 h-16'
         >
           Premission denied
         </motion.div>
