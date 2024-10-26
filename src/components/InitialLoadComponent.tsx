@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import React, { useState } from 'react'
 
-function InitailComponent({
+function InitialLoadComponent({
   baseClassName,
   startTimer,
 }: {
@@ -42,4 +42,4 @@ function InitailComponent({
   )
 }
 
-export default InitailComponent
+export default InitialLoadComponent

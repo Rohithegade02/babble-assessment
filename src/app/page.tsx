@@ -1,15 +1,31 @@
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import { pathData, TIMER_STATES } from '@/constants'
-import { TimerState } from '@/types/type'
-import BackgroundStarComponent from '@/components/BackgroundStarComponent'
-import InitailComponent from '@/components/InitailComponent'
-import TimeRunningComponent from '@/components/TimeRunningComponent'
-import TimeStopComponent from '@/components/TimeStopComponent'
-import TimeCompletedComponent from '@/components/TimeCompletedComponent'
-import WaveFormComponent from '@/components/WaveFormComponent'
-import BottomFooterComponent from '@/components/BottomFooterComponent'
-import IconComponent from '@/components/IconComponent'
+import { StarProps, TimerState } from '@/types/type'
+import dynamic from 'next/dynamic'
+
+const BackgroundStarComponent = dynamic(
+  () => import('@/components/BackgroundStarComponent'),
+)
+const InitialLoadComponent = dynamic(
+  () => import('@/components/InitialLoadComponent'),
+)
+const TimeRunningComponent = dynamic(
+  () => import('@/components/TimeRunningComponent'),
+)
+const TimeStopComponent = dynamic(
+  () => import('@/components/TimeStopComponent'),
+)
+const TimeCompletedComponent = dynamic(
+  () => import('@/components/TimeCompletedComponent'),
+)
+const WaveFormComponent = dynamic(
+  () => import('@/components/WaveFormComponent'),
+)
+const IconComponent = dynamic(() => import('@/components/IconComponent'))
+const BottomFooterComponent = dynamic(
+  () => import('@/components/BottomFooterComponent'),
+)
 
 export default function Home() {
   const [pathIndex, setPathIndex] = useState(0)
@@ -17,107 +33,25 @@ export default function Home() {
   const [resumeHoverTimer, setResumeHoverTime] = useState(false)
   const [stopHoverTimer, setStopHoverTime] = useState(false)
   const [currentPath, setCurrentPath] = useState(pathData[0])
-
+  const [stars, setStars] = useState<StarProps[]>([])
   const [nextPath, setNextPath] = useState(pathData[1])
-  const [isTransitioning, setIsTransitioning] = useState(false)
-
   const [timerState, setTimerState] = useState<TimerState>({
     status: TIMER_STATES.INITIAL,
     currentTime: 3,
     isFirstStart: true,
   })
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const audioStreamRef = useRef<MediaStream | null>(null)
-
-  const setupAudioStream = async () => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.error('Audio permissions are not supported on this browser.')
-      return false
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      })
-      audioStreamRef.current = stream
-
-      if (!window.localAudio) {
-        window.localAudio = document.createElement('audio')
-        document.body.appendChild(window.localAudio)
-      }
-      window.localAudio.srcObject = stream
-      window.localAudio.autoplay = true
-      return true
-    } catch (err) {
-      console.error(`Audio permission error: ${err}`)
-      return false
-    }
-  }
+  const setupAudioStream = async () => {}
 
   const startTimer = async () => {
-    if (
-      timerState.status === TIMER_STATES.INITIAL &&
-      !(await setupAudioStream())
-    ) {
-      return
-    }
-
     setTimerState(prev => ({
       ...prev,
       status: TIMER_STATES.RUNNING,
       isFirstStart: false,
     }))
-
-    const countdown = () => {
-      setTimerState(prev => {
-        if (prev.currentTime <= 1) {
-          return {
-            ...prev,
-            currentTime: 0,
-            status: TIMER_STATES.STOP,
-          }
-        }
-        return {
-          ...prev,
-          currentTime: prev.currentTime - 1,
-        }
-      })
-    }
-
-    timerRef.current = setInterval(countdown, 1000)
   }
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout
-
-    if (timerState.status === TIMER_STATES.STOP) {
-      intervalId = setInterval(() => {
-        setIsTransitioning(true)
-        const nextIndex = (pathIndex + 1) % pathData.length
-        setPathIndex(nextIndex)
-
-        setCurrentPath(pathData[pathIndex])
-        setNextPath(pathData[(nextIndex + 1) % pathData.length])
-
-        setTimeout(() => {
-          setIsTransitioning(false)
-        }, 500)
-      }, 4000)
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
-    }
-  }, [timerState.status, pathIndex])
-
   const pauseTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-    }
     setTimerState(prev => ({
       ...prev,
       status: TIMER_STATES.PAUSED,
@@ -127,35 +61,17 @@ export default function Home() {
   const resumeTimer = () => {
     setTimerState(prev => ({
       ...prev,
-      status: TIMER_STATES.RUNNING,
+      status: TIMER_STATES.STOP,
     }))
-    startTimer()
   }
 
   const resetTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-    }
-    if (audioStreamRef.current) {
-      audioStreamRef.current.getTracks().forEach(track => track.stop())
-    }
     setTimerState({
       status: TIMER_STATES.COMPLETED,
       currentTime: 3,
       isFirstStart: false,
     })
   }
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-      }
-      if (audioStreamRef.current) {
-        audioStreamRef.current.getTracks().forEach(track => track.stop())
-      }
-    }
-  }, [])
 
   const renderTimerButton = () => {
     const baseClassName =
@@ -164,7 +80,7 @@ export default function Home() {
     switch (timerState.status) {
       case TIMER_STATES.INITIAL:
         return (
-          <InitailComponent
+          <InitialLoadComponent
             baseClassName={baseClassName}
             startTimer={startTimer}
           />
@@ -210,7 +126,7 @@ export default function Home() {
       {(!timerState.currentTime ||
         timerState.isFirstStart ||
         timerState.status === TIMER_STATES.COMPLETED) && (
-        <BackgroundStarComponent />
+        <BackgroundStarComponent stars={stars} setStars={setStars} />
       )}
       {timerState.status === TIMER_STATES.INITIAL && (
         <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />

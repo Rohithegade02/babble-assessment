@@ -1,9 +1,13 @@
 import { StarProps } from '@/types/type'
-import React, { useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect } from 'react'
 
-function BackgroundStarComponent() {
-  const [stars, setStars] = useState<StarProps[]>([])
-
+function BackgroundStarComponent({
+  setStars,
+  stars,
+}: {
+  stars: StarProps[]
+  setStars: Dispatch<SetStateAction<StarProps[]>>
+}) {
   useEffect(() => {
     setStars(
       Array.from({ length: 300 }, (_, i) => ({
@@ -13,7 +17,7 @@ function BackgroundStarComponent() {
         opacity: Math.random() * 0.5 + 0.1,
       })),
     )
-  }, [])
+  }, [setStars])
   return (
     <div className='absolute inset-0'>
       {stars.map(star => (
