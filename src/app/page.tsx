@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { AudioLines, Trash, Waypoints } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface StarProps {
   id: number
@@ -25,8 +25,22 @@ const pathData = [
 
   // Higher amplitude wave
   'M0,98L30,138.8C60,180,120,261,180,253.2C240,245,300,147,360,147C420,147,480,245,540,261.3C600,278,660,212,720,220.5C780,229,840,310,900,334.8C960,359,1020,327,1080,294C1140,261,1200,229,1260,187.8C1320,147,1380,98,1440,73.5L1440,490L0,490Z',
-]
 
+  // Calm ripple wave
+  'M0,245L30,236.8C60,229,120,212,180,204.2C240,196,300,196,360,204.2C420,212,480,229,540,236.8C600,245,660,245,720,236.8C780,229,840,212,900,204.2C960,196,1020,196,1080,204.2C1140,212,1200,229,1260,236.8C1320,245,1380,245,1440,236.8L1440,490L0,490Z',
+
+  // Choppy wave
+  'M0,147L30,171.3C60,196,120,245,180,261.3C240,278,300,261,360,220.5C420,180,480,114,540,98C600,82,660,114,720,155.2C780,196,840,245,900,261.3C960,278,1020,261,1080,220.5C1140,180,1200,114,1260,98C1320,82,1380,114,1440,155.2L1440,490L0,490Z',
+
+  // Double peak wave
+  'M0,196L30,220.5C60,245,120,294,180,285.8C240,278,300,212,360,187.8C420,163,480,180,540,204.2C600,229,660,261,720,245C780,229,840,163,900,155.2C960,147,1020,196,1080,220.5C1140,245,1200,245,1260,220.5C1320,196,1380,147,1440,122.5L1440,490L0,490Z',
+
+  // Smooth sine wave
+  'M0,245L30,236.8C60,229,120,212,180,212.3C240,212,300,229,360,245C420,261,480,278,540,277.7C600,278,660,261,720,245C780,229,840,212,900,212.3C960,212,1020,229,1080,245C1140,261,1200,278,1260,277.7C1320,278,1380,261,1440,245L1440,490L0,490Z',
+
+  // Storm wave
+  'M0,147L30,196C60,245,120,343,180,359.2C240,376,300,310,360,261.3C420,212,480,180,540,171.3C600,163,660,180,720,220.5C780,261,840,327,900,343.2C960,359,1020,327,1080,277.7C1140,229,1200,163,1260,138.8C1320,114,1380,131,1440,171.3L1440,490L0,490Z',
+]
 // Define timer configuration type
 interface TimerConfig {
   initialTime: number
@@ -48,7 +62,11 @@ export default function Home() {
   const [resumeHoverTimer, setResumeHoverTime] = useState(false)
   const [stopHoverTimer, setStopHoverTime] = useState(false)
   const [startHoverTime, setStartHoverTime] = useState(false)
-  // Timer state management
+  const [currentPath, setCurrentPath] = useState(pathData[0])
+
+  const [nextPath, setNextPath] = useState(pathData[1])
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
   const [timerState, setTimerState] = useState<TimerState>({
     status: TIMER_STATES.INITIAL,
     currentTime: 3,
@@ -60,7 +78,7 @@ export default function Home() {
 
   useEffect(() => {
     setStars(
-      Array.from({ length: 200 }, (_, i) => ({
+      Array.from({ length: 300 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
@@ -128,6 +146,33 @@ export default function Home() {
     timerRef.current = setInterval(countdown, 1000)
   }
 
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout
+
+    if (timerState.status === TIMER_STATES.STOP) {
+      intervalId = setInterval(() => {
+        setIsTransitioning(true)
+        const nextIndex = (pathIndex + 1) % pathData.length
+        setPathIndex(nextIndex)
+
+        // Update current and next paths
+        setCurrentPath(pathData[pathIndex])
+        setNextPath(pathData[(nextIndex + 1) % pathData.length])
+
+        // Reset transition flag after animation
+        setTimeout(() => {
+          setIsTransitioning(false)
+        }, 500)
+      }, 4000)
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [timerState.status, pathIndex])
+
   const pauseTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
@@ -179,7 +224,10 @@ export default function Home() {
       case TIMER_STATES.INITIAL:
         return (
           <motion.div
-            className={`${baseClassName} bg-[#2F4858] z-50  border-orange`}
+            className={`${baseClassName} bg-[#2F4858] z-50 border-orange`}
+            style={{
+              filter: 'drop-shadow(0 0 15px rgba(251,146,60,0.5))',
+            }}
             transition={{ duration: 0.8 }}
             onHoverStart={() => setStartHoverTime(true)}
             onHoverEnd={() => setStartHoverTime(false)}
@@ -191,13 +239,13 @@ export default function Home() {
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', bounce: 0.55 }}
-                  className={`absolute right-[20px] top-[10%] rounded-full border-2 w-[160px] h-[160px] bg-[#2F4858] z-50 shadow-md  border-orange`}
+                  className={`absolute right-[20px] top-[10%] rounded-full border-2 w-[160px] h-[160px] bg-[#2F4858] z-50 shadow-md border-orange`}
                 />
                 <motion.div
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', bounce: 0.55 }}
-                  className={`absolute right-10 top-[20%] rounded-full border-2 w-[120px] h-[120px] bg-[#2F4858] z-50 shadow-md  border-orange`}
+                  className={`absolute right-10 top-[20%] rounded-full border-2 w-[120px] h-[120px] bg-[#2F4858] z-50 shadow-md border-orange`}
                 />
               </>
             )}
@@ -322,7 +370,7 @@ export default function Home() {
           {stars.map(star => (
             <div
               key={star.id}
-              className='absolute h-[2px] w-[2px] bg-white rounded-full'
+              className='absolute h-[1px] w-[1px] bg-white rounded-full'
               style={{
                 left: `${star.x}%`,
                 top: `${star.y}%`,
@@ -356,38 +404,59 @@ export default function Home() {
                 <stop stopColor='#FFC59A' offset='100%'></stop>
               </linearGradient>
             </defs>
-            <motion.path
-              style={{ opacity: 1 }}
-              fill='url(#sw-gradient-0)'
-              d={pathData[pathIndex]}
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{
-                duration: 4,
-                ease: 'easeInOut',
-                repeat: Infinity,
-                repeatType: 'reverse',
-              }}
-            />
-            <defs>
-              <linearGradient id='sw-gradient-0' x1='0' x2='0' y1='1' y2='0'>
-                <stop stopColor='#FFB887' offset='0%'></stop>
-                <stop stopColor='#FFC59A' offset='100%'></stop>
-              </linearGradient>
-            </defs>
-            <motion.path
-              style={{ opacity: 1 }}
-              fill='url(#sw-gradient-0)'
-              d={pathData[pathIndex + 1]}
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{
-                duration: 4,
-                ease: 'easeInOut',
-                repeat: Infinity,
-                repeatType: 'reverse',
-              }}
-            />
+
+            <AnimatePresence>
+              <motion.path
+                key={`base-${pathIndex}`}
+                style={{ opacity: 0.6 }}
+                fill='url(#sw-gradient-0)'
+                d={pathData[0]}
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 0.6,
+                  d: pathData[0],
+                }}
+                exit={{ opacity: 0.6 }}
+                transition={{
+                  duration: 2.5,
+                  ease: 'easeInOut',
+                }}
+              />
+
+              <motion.path
+                key={`overlay-1-${pathIndex}`}
+                style={{ opacity: 0.6 }}
+                fill='url(#sw-gradient-0)'
+                d={currentPath}
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 0.6,
+                  d: nextPath,
+                }}
+                exit={{ opacity: 0.6 }}
+                transition={{
+                  duration: 3,
+                  ease: 'easeInOut',
+                }}
+              />
+
+              <motion.path
+                key={`overlay-2-${pathIndex}`}
+                style={{ opacity: 0.3 }}
+                fill='url(#sw-gradient-0)'
+                d={nextPath}
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 0.3,
+                  d: currentPath,
+                }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: 3.5,
+                  ease: 'easeInOut',
+                }}
+              />
+            </AnimatePresence>
           </motion.svg>
         ) : timerState.status ===
           TIMER_STATES.COMPLETED ? null : timerState.status !==
