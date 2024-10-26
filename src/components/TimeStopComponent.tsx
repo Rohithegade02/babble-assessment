@@ -3,24 +3,24 @@ import { Trash } from 'lucide-react'
 import React, { Dispatch, SetStateAction } from 'react'
 
 function TimeStopComponent({
-  resetTimer,
+  stopTimer,
   setStopHoverTime,
   stopHoverTimer,
 }: {
   stopHoverTimer: boolean
   setStopHoverTime: Dispatch<SetStateAction<boolean>>
-  resetTimer: () => void
+  stopTimer: () => void
 }) {
   return (
     <div className='flex items-center relative h-screen w-full '>
       <motion.div
-        initial={{ scale: 0.8 }}
+        initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
         transition={{ duration: 1.5 }}
         onHoverStart={() => setStopHoverTime(true)}
         onHoverEnd={() => setStopHoverTime(false)}
-        className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
-        onClick={resetTimer}
+        className={`absolute cursor-pointer -right-[100px] top-[34%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
+        onClick={stopTimer}
       >
         {stopHoverTimer && (
           <motion.div

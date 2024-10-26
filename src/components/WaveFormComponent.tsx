@@ -7,7 +7,7 @@ function WaveFormComponent({
   nextPath,
   pathIndex,
 }: {
-  pathIndex: number
+  pathIndex: string
   currentPath: string
   nextPath: string
 }) {

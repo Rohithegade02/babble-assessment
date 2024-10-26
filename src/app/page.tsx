@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { pathData, TIMER_STATES } from '@/constants'
 import { StarProps, TimerState } from '@/types/type'
 import dynamic from 'next/dynamic'
@@ -28,7 +28,6 @@ const BottomFooterComponent = dynamic(
 )
 
 export default function Home() {
-  const [pathIndex, setPathIndex] = useState(0)
   const [doneHoverTimer, setDoneHoverTime] = useState(false)
   const [resumeHoverTimer, setResumeHoverTime] = useState(false)
   const [stopHoverTimer, setStopHoverTime] = useState(false)
@@ -40,32 +39,56 @@ export default function Home() {
     currentTime: 3,
     isFirstStart: true,
   })
+  const pathIndex = pathData[0]
+  useEffect(() => {
+    let currentIndex = 0
+    let nextIndex = 1
 
-  const setupAudioStream = async () => {}
+    const interval = setInterval(() => {
+      setCurrentPath(pathData[currentIndex])
+      setNextPath(pathData[nextIndex])
+
+      currentIndex = (currentIndex + 1) % pathData.length
+      nextIndex = (nextIndex + 1) % pathData.length
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
 
   const startTimer = async () => {
-    setTimerState(prev => ({
-      ...prev,
-      status: TIMER_STATES.RUNNING,
-      isFirstStart: false,
-    }))
-  }
-
-  const pauseTimer = () => {
-    setTimerState(prev => ({
-      ...prev,
-      status: TIMER_STATES.PAUSED,
-    }))
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (stream) {
+        setTimerState(prev => ({
+          ...prev,
+          status: TIMER_STATES.RUNNING,
+          isFirstStart: false,
+        }))
+      }
+      const countdown = setInterval(() => {
+        setTimerState(prev => {
+          if (prev.currentTime > 1) {
+            return { ...prev, currentTime: prev.currentTime - 1 }
+          } else {
+            clearInterval(countdown)
+            return { ...prev, status: TIMER_STATES.STOP, currentTime: 1 }
+          }
+        })
+      }, 1000)
+    } catch (err) {
+      console.log('No mic for you!', err)
+    }
   }
 
   const resumeTimer = () => {
-    setTimerState(prev => ({
-      ...prev,
-      status: TIMER_STATES.STOP,
-    }))
+    if (timerState.currentTime < 1) {
+      setTimerState(prev => ({
+        ...prev,
+        status: TIMER_STATES.STOP,
+      }))
+    }
   }
 
-  const resetTimer = () => {
+  const stopTimer = () => {
     setTimerState({
       status: TIMER_STATES.COMPLETED,
       currentTime: 3,
@@ -86,12 +109,10 @@ export default function Home() {
           />
         )
       case TIMER_STATES.RUNNING:
-      case TIMER_STATES.PAUSED:
         return (
           <TimeRunningComponent
             baseClassName={baseClassName}
             timerState={timerState}
-            pauseTimer={pauseTimer}
             resumeTimer={resumeTimer}
           />
         )
@@ -100,10 +121,9 @@ export default function Home() {
           <TimeStopComponent
             stopHoverTimer={stopHoverTimer}
             setStopHoverTime={setStopHoverTime}
-            resetTimer={resetTimer}
+            stopTimer={stopTimer}
           />
         )
-
       case TIMER_STATES.COMPLETED:
         return (
           <TimeCompletedComponent
@@ -111,7 +131,7 @@ export default function Home() {
             setResumeHoverTime={setResumeHoverTime}
             resumeHoverTimer={resumeHoverTimer}
             doneHoverTimer={doneHoverTimer}
-            resetTimer={resetTimer}
+            resetTimer={resumeTimer}
           />
         )
     }
@@ -129,7 +149,7 @@ export default function Home() {
         <BackgroundStarComponent stars={stars} setStars={setStars} />
       )}
       {timerState.status === TIMER_STATES.INITIAL && (
-        <div className='absolute  rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
+        <div className='absolute rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
       )}
       <div className='relative h-full w-full flex flex-col items-center justify-center'>
         {timerState.isFirstStart && (

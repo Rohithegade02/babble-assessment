@@ -19,12 +19,12 @@ function TimeCompletedComponent({
     <div className='flex items-center relative h-screen w-full '>
       <div className=' '>
         <motion.div
-          initial={{ scale: 0.8 }}
+          initial={{ scale: 0.98 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.5 }}
           onHoverStart={() => setDoneHoverTime(true)}
           onHoverEnd={() => setDoneHoverTime(false)}
-          className={`absolute cursor-pointer -right-[100px] top-[37%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
+          className={`absolute cursor-pointer -right-[100px] top-[34%] w-[202px] h-[202px] rounded-full flex justify-center items-center bg-white z-50 overflow-hidden border-orange group`}
           onClick={resetTimer}
         >
           {doneHoverTimer && (
@@ -46,7 +46,7 @@ function TimeCompletedComponent({
       <motion.div
         onHoverStart={() => setResumeHoverTime(true)}
         onHoverEnd={() => setResumeHoverTime(false)}
-        className={`rounded-full absolute -right-64 top-[42%]  border border-orange  flex items-center justify-center cursor-pointer drop-shadow w-32 h-32  z-50 overflow-hidden bg-orange`}
+        className={`rounded-full absolute -right-64 top-[39%]  border border-orange  flex items-center justify-center cursor-pointer drop-shadow w-32 h-32  z-50 overflow-hidden bg-orange`}
         onClick={resetTimer}
       >
         {resumeHoverTimer && (

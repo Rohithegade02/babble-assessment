@@ -1,17 +1,14 @@
 import { motion } from 'framer-motion'
 import React from 'react'
-import { TIMER_STATES } from '../constants'
 import { TimerState } from '@/types/type'
 
 function TimeRunningComponent({
   baseClassName,
-  pauseTimer,
   resumeTimer,
   timerState,
 }: {
   baseClassName: string
   timerState: TimerState
-  pauseTimer: () => void
   resumeTimer: () => void
 }) {
   return (
@@ -20,9 +17,7 @@ function TimeRunningComponent({
       initial={{ scale: 0.8 }}
       animate={{ scale: 1 }}
       transition={{ duration: 0.8 }}
-      onClick={
-        timerState.status === TIMER_STATES.RUNNING ? pauseTimer : resumeTimer
-      }
+      onClick={resumeTimer}
     >
       <span className='text-[#281E16] text-xl font-normal'>
         {timerState.currentTime}

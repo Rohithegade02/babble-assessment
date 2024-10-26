@@ -1,7 +1,6 @@
 export const TIMER_STATES = {
   INITIAL: 'initial',
   RUNNING: 'running',
-  PAUSED: 'paused',
   COMPLETED: 'completed',
   STOP: 'stop',
 } as const
