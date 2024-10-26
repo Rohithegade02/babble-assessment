@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { pathData, TIMER_STATES } from '@/constants'
 import { StarProps, TimerState } from '@/types/type'
 import dynamic from 'next/dynamic'
+import { motion } from 'framer-motion'
 
 const BackgroundStarComponent = dynamic(
   () => import('@/components/BackgroundStarComponent'),
@@ -39,6 +40,7 @@ export default function Home() {
     currentTime: 3,
     isFirstStart: true,
   })
+  const [error, setError] = useState(false)
   const pathIndex = pathData[0]
   useEffect(() => {
     let currentIndex = 0
@@ -76,6 +78,7 @@ export default function Home() {
       }, 1000)
     } catch (err) {
       console.log('No mic for you!', err)
+      setError(true)
     }
   }
 
@@ -147,6 +150,23 @@ export default function Home() {
         timerState.isFirstStart ||
         timerState.status === TIMER_STATES.COMPLETED) && (
         <BackgroundStarComponent stars={stars} setStars={setStars} />
+      )}
+      {error && (
+        <motion.div
+          initial={{
+            y: 100,
+            opacity: 1,
+            scale: 1,
+          }}
+          animate={{
+            y: 0,
+            opacity: 1,
+            scale: 1,
+          }}
+          className='text-white absolute bottom-20 text-3xl rounded-3xl z-10 flex justify-center items-center bg-red-400 w-72 h-20'
+        >
+          Premission denied
+        </motion.div>
       )}
       {timerState.status === TIMER_STATES.INITIAL && (
         <div className='absolute rounded-md w-[90vw] h-[82vh] border-[1px] border-[#fff]' />
